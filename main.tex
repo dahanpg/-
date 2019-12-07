@@ -4,17 +4,19 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{url}
-
+\usepackage{multirow}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{here}
 
 \title{隠れマルコフモデルによるヒト腸内細菌叢の状態推定}
-\author{浜田~研究室\\
+\author{江　涵\\
+学籍番号　1Y15F043–1\\
 \\
 早稲田大学 先進理工学部\\
 電気・情報生命工学科\\ 
-バイオインフォマティクス研究\\
+バイオインフォマティクス研究(指導教員　浜田 道昭)\\
 \\
-江　涵\\
-1Y15F043–1
+
 }
 
 \begin{document}
@@ -22,144 +24,298 @@
 \maketitle
 
 \begin{abstract}
-　本研究は、隠れマルコフモデルを用いてヒト腸内細菌叢の状態推定を行うことである。研究分野はメタゲノム解析として、ヒト腸内細菌叢において何が存在されるのかについて調べる。ヒト腸内細菌叢の時系列データが取れたが、状態の変遷は健康にどのように影響を与えるのかが不明である。今回の研究では、隠れマルコフモデルを用いて、ヒト腸内細菌叢データについて状態推定を行い、健康との関連性を見出すのを目指す。
 
+本研究は，隠れマルコフモデルを用いてヒト腸内細菌叢の状態推定を行うことである．ヒト腸内には様々な微生物が存在し，人の食生活やライフスタイル等の選択により日々微小な変化が起こっている．人の健康状態もヒト腸内細菌叢と関わると考えられるが，それはどのようなヒト腸内細菌叢の状態により人の健康状態に影響を及ぼすのか，解明されていない．そこで，本研究では，メタゲノム解析を行うことにより，ヒト腸内細菌叢にどのような微生物が存在しているのかを調べ，人の健康状態に影響を及ぼす状態について理解を深めようと考えている\footnote{まだ実装ができていないため、文章にはこのように書くが、実装ができてから修正するつもりである．}．
+
+本研究では，ヒト腸内細菌叢の時系列データに対し，観測変数が多項分布に従っている隠れマルコフモデルの更新式を導入し、パラメータ推定を行う。
 \end{abstract}
 
-\setcounter{tocdepth}{2} % subsectionまで目次に載せる
+
+
+\setcounter{tocdepth}{2}　%\listoffigures 
 \tableofcontents
 
-\chapter{研究背景}
 
-　人の腸内には様々な細菌が存在されますが、どのような細菌が存在するのか、また細菌叢の時間的動態は健康との関連性について関心が高まっています。メタゲノム解析が「どのような細菌が存在するのか」についての研究である。
-\begin{itemize}
-\item 説明をすることなく専門用語（テクニカルターム）を使うことは避けて下さい．どうしても使わなくてはならない場合でも，（そのテクニカルタームについての定義・記載のある）参考文献を引用するようにして下さい．
-\item  既存の研究に触れながら（必ず文献を参照すること），自分の研究の必要性・重要性を読者に伝えるようにして下さい．「なぜこの研究をやることが必要なのか？」ということを明確に記載するのが重要です．よくある悪い例としては，手法の提案の論文で，「そのような手法がない」ということだけを動機にしているものはダメです．
-\item 卒論・修論の\textbf{研究背景が１ページに満たないのは論外}です．なぜこの研究を行う必要があるのかということを，背景や既存研究を丁寧に説明しながら記載すれば\underline{少なくとも}数ページ以上にはなるはずです．
-\end{itemize}
+\chapter{序論}
+
+\section{背景}
+
+人の腸内には様々な細菌が存在している．この中にどのような細菌が存在するのか，また細菌叢の時間的動態は健康とどのように関連しているのかについて関心が高まっている\cite{pmid20368178}\cite{pmid21885731}．ヒト腸内細菌叢は，通常長期的に安定している\cite{pmid23828941}\cite{pmid9758810}．ホストのライフスタイルの選択によるヒト腸内細菌叢の動態が明らかになった\cite{pmid25146375}が，健康に対する潜在的な影響は観察されていない．
+
 
 \section{メタゲノム解析}
 
-\begin{itemize}
-　メタゲノムとは、環境中からある特定の微生物の単離、培養を行わず、微生物集団から直接収集、抽出される遺伝情報（ゲノム）の物である。メタゲノム解析は、メタゲノムの中にどのような微生物が存在するのかを調べるのである。
+メタゲノムとは，海洋，土壌，動物の消化管など多岐にわたる環境中からある特定の微生物の単離・培養を行わず，微生物集団から直接収集・抽出される遺伝情報（ゲノム）である．メタゲノム解析では，対象の環境中にどのような微生物が存在しているのかを調べる．
 
-\end{itemize}
+このように、細菌叢の組成や機能を明らかにすることで，細菌叢が及ぼす生育環境への影響との関連性を調べることができる．
+
 
 \section{ヒト腸内細菌叢の時系列データ}
-先行研究では、図\ref{fig:example}に示されたデータを取られた。
-\begin{figure}[h]
-\vspace{50mm}
-\caption{\label{fig:fig1.1.png}
 
+先行研究\cite{pmid25146375}では，図\ref{fig:1.1}に示されたデータが取られた．
 
-\end{itemize}
-
-\section{図・表の書き方}
-
-図は図\ref{fig:example}のように記載します．
-特に，図の説明の部分を良く読むようにして下さい\footnote{図の説明の書き方は文化によって異なる場合があります（図には説明は詳しく書かずにタイトルだけを記載する文化もあります）．
-浜田研では，我々の研究分野で広く使われる方式を採用します．皆さんが読む論文の大部分の図表は，説明が詳しく記載されているはずです．}．
-
-\begin{figure}[h]
-\vspace{50mm}
-\caption{\label{fig:example}
-図の例．ここの部分に図を読み取るために必要な情報を（基本的には）全て記載します．図とこの説明だけを見れば，（本文を一切見なくても）図を理解をすることができるというのが理想です．一方で，自分の主観をこの部分に書くべきではありません（例えば，精度が高い，早いなどは読み手によって変わってくるのでここで書くべきではありません．）
-}
+\begin{figure}[htp]
+ \begin{center}
+  \includegraphics[scale=0.6]{Picture1.png}
+ \end{center}
+ \caption{一年間にわたる2人（Subject A、Subject B）の糞便を採集したデータ\cite{pmid25146375}\newline
+横軸は時点を表す．各ストリームはOTUを表し，ストリーム幅は特定の時点での相対的なOTUの存在量を表す．OTUは，微生物学において種を区別するための操作的分類単位であり，一般にrDNAおよび類似率閾値を使用して分類される．}\label{fig:1.1}
 \end{figure}
 
-同様に，表は表\ref{tab:example}のように記載します\footnote{\url{https://www.tablesgenerator.com/latex_tables}を使うと表のソースが作りやすいと思います．}．この例では，区切り線に\texttt{booktabs.sty}パッケージに定義されているものを使っていますが，通常の\texttt{hline}などを使っても大丈夫です．
+\section{研究目的}
 
-\begin{table}[h]
-\caption{\label{tab:example} 表の例}
-\begin{center}
-\begin{tabular}{lcc}
-\toprule
-A & B & C \\
-\midrule
-D & E & F \\
-G & H & I \\
-\bottomrule
-\end{tabular}\\
-{\footnotesize 
-表の場合は下側に表を解釈するために必要な情報を不足なく記載する}
-\end{center}
-\end{table}
-
-\textbf{すべての図と表は，本文中で必ず１度以上参照する}ようにして下さい\footnote{本文で一度も参照されない図表は存在意義がありません．}．
-
-\section{参考文献の書き方}
-
-\begin{itemize}
-\item \textbf{参考文献の数に決まりはないですが，10未満は少なすぎる}と思います．もちろん，皆さんの研究が本当に斬新な研究で，他に参照する研究がないものであれば参考文献が少なくても問題ないですが．．．
-\item 参考文献の記載には\texttt{bibtex}を利用すると良いと思います．
-\texttt{bibtex}に関しては，例えば\url{http://www.fan.gr.jp/~ring/doc/bibtex.html}を参照して下さい．
-%
-\item bibtex用の文献フォーマットの作成は，\url{http://www.bioinformatics.org/texmed/}を使うと便利だと思います（PubMedに載っている論文の場合）．
-書籍の場合\url{http://lead.to/amazon/jp/}が便利です．
-\end{itemize}
+先行研究では，ヒト腸内細菌叢データについて単純な時系列解析を行い，ホストのライフスタイルとの関連性を解釈した．しかし，ヒト腸内細菌叢の状態の変遷は健康にどのような影響を与えるのかは解析されていない．そこで，本研究では隠れマルコフモデルを用いてヒト腸内細菌叢データを解析することにより，健康との関連性を見出すことを目的とする．
 
 
 
-\section{その他，\TeX の書き方等に関して}
-
-\begin{itemize}
-\item 図\ref{fig:example}のソースのように，番号の参照は常に\texttt{\textbackslash ref}と\texttt{\textbackslash label}を利用すること．文献の参照は\texttt{\textbackslash cite}を使うこと．このような参照番号のベタ打ちは絶対に避けること\footnote{図表や文献が途中に追加された場合に番号がずれるためです．}.
-\item その他\TeX の情報はHamadaLab Slackのtexチャンネルから得られると思います．不明点はここで質問してもいいかも．またウェブからも多数情報が得られるのでぜひググってみて下さい．
-\item 論文のバックアップを定期的にとること．Overleafのサービスは完璧ではないので，サイトの不具合等によりデータが消失する可能性もあります．
-\end{itemize}
-
-以下宮原君から：
-
-overleafについて，githubと連携させることでバックアップを取ることができます．(v2では動作を確認しています．)
-浜田研のチームレポジトリに保存することも可能です．
-\begin{enumerate}
-\item 保存したい文書のページをoverleaf上で開く.
-\item 左上のMenuボタンをクリック
-\item SyncのGithubをクリック
-\item Create a Github repositoryをクリック
-以後，英語の指示に従っていけば作れるはずです．
-(Ownerをhmdlabにすると，チームレポジトリに保存できます)
-\end{enumerate}
-
-
-\section{先輩の論文で参考になるもの}
-
-例えば，皆さんの先輩が執筆した論文\cite{pmid29315213,pmid29040374}を見てみて下さい．英文の原著論文ですが，この文章で書かれていることが実践されていると思います．
-
-また，今後は補遺\ref{chap:past_thesis}章に過去の論文のOverleafのリンクをまとめていくといいと思います（後輩が見ても恥ずかしくない論文の執筆を心がけましょう）．
 
 \chapter{手法}
 
-研究手法について詳細を記載します．原則は，\textbf{論文の記載を読んで第３者が論文の結果を再現できるぐらいまで}詳しく不足なく記載をするということだと頭に入れておいて下さい．
+本研究では，観測変数が多項分布に従っている隠れマルコフモデルを使い，パラメータの最尤推定における更新式を導出する．
 
+\section{隠れマルコフモデル}
+
+隠れマルコフモデル(Hidden Markov Model;HMM)は，マルコフ過程をとる隠れ状態に対応する観測状態としてデータを扱う生成確率モデルである\cite{元田_栗田_樋口_松本_村田201202}．
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{Picture2.png}
+\caption{\label{fig:2.1}
+隠れマルコフモデル(HMM)のグラフィカル表現\cite{Bishop201002}\newlineここで，観測変数系列$X:=\{\bm{x}_n,n=1,\dots,N\}$は実際に観測・取得することが出来るデータであり，潜在変数系列$Z:=\{\bm{z}_n,n=1,\dots,N\}$:実際に観測・取得する事が出来ないデータ（離散変数）である．}
+\end{figure}
+観測変数$\bm{x}_n$は潜在変数$\bm{z}_n$に影響を受けて生成され，潜在変数$\bm{z}_n$は一次マルコフ連鎖に従い$\bm{z}_{n-1}$の影響を受けて生成される．この条件を満たすように構築したモデルの一つが隠れマルコフモデルであり，潜在変数系列$Z$と観測変数系列$X$の同時確率分布を
+\begin{align*}
+	p(X,Z) = p(\bm{x}_1,\dots,\bm{x}_N,\bm{z}_1,\dots,\bm{z}_N) &:= p(\bm{z}_1) \left[ \prod_{k=2}^N p(\bm{z}_k|\bm{z}_{k-1})\right] \prod_{k=1}^N p(\bm{x}_k|\bm{z}_k)
+	\label{eq:HMM}
+\end{align*}
+と表すことができる．
+潜在変数系列$Z$については，各時点$n$での状態を表す潜在変数$\bm{z}_n,n \in \{1,\dots,N\}$を$K$次元ベクトル空間$\mathbb{K}$上の元とすると，
+\begin{align}
+    \begin{aligned}
+    	\bm{z}_n &= 
+	    \begin{pmatrix}
+		    z_{n1} \\
+		    z_{n2} \\
+		    \vdots \\
+		    z_{nK}
+	    \end{pmatrix} \\
+        z_{nk} &\in \{ 0,1 \}, ^\forall n \in \{1,\dots,N\}, ^\forall k \in \{1,\dots,K\} \\
+	    & \sum_{k=1}^{K} z_{nk} = 1, ^\forall n \in \{1,\dots,N\}
+    \end{aligned}
+\end{align}
+と書くことができる。さらに，潜在状態間の遷移を表す条件付き分布$p(\bm{z}_n|\bm{z}_{n-1})$を特徴づけるパラメータ，$K \times K$行列$A$を導入する．
+この行列$A$の各成分は
+\begin{align}
+    A_{jk} := p(z_{nk}=1|z_{n-1,j}=1)
+	\label{}
+\end{align}
+として定義するものであり，解釈としては潜在変数の状態が状態$j$から状態$k$へと遷移する確率である．遷移確率であることから行列$A$は規格化されており，
+\begin{align}
+	\sum_{k=1}^{K} A_{jk} = 1 , ^\forall j \in \{1,2,\dots,K \}
+	\label{}
+\end{align}
+が成立する．$z_{nk} \in \{0,1\} ,^\forall n \in \{1,\dots,N\},^\forall k \in \{1,\dots,K\}$であることから，遷移確率の条件付き分布$p(\bm{z}_n|\bm{z}_{n-1})$は
+\begin{align}
+    p(\bm{z}_n|\bm{z}_{n-1}) := p(\bm{z}_n|\bm{z}_{n-1},A) = \prod_{k=1}^K \prod_{j=1}^K (A_{jk})^{z_{n-1,j} \times z_{nk}}
+    \label{ref:def_A}
+\end{align}
+と書くことができる．
+
+潜在変数の初期状態$\bm{z}_1$も同様に$K$次元ベクトルのパラメータ$\bm{\pi}\in \mathbb{K}$を
+\begin{align}
+    \begin{aligned}
+        \bm{\pi} &=
+        \begin{pmatrix}
+            \pi_1 \\
+            \pi_2 \\
+            \vdots \\
+            \pi_{K}
+        \end{pmatrix} \\
+        \sum_{k=1}^K \pi_k &= 1
+    \end{aligned}
+    \label{}
+\end{align}
+と導入することで特徴づけてやることにより
+\begin{align}
+    p(\bm{z}_1) := p(\bm{z}_1|\bm{\pi}) = \prod_{k=1}^K \pi_k^{z_{1k}}
+    \label{}
+\end{align}
+とすることができる．
+
+最後に，出力確率については，潜在変数$\bm{z}$に依存して変化する分布を特徴づけるパラメータベクトル$\bm{\phi}$を
+\begin{align}
+    \bm{\phi}= 
+    \begin{pmatrix}
+        \phi_1 \\
+        \phi_2 \\
+        \vdots \\
+        \phi_K
+    \end{pmatrix}
+    \label{}
+\end{align}
+とおくと，
+\begin{align}
+    p(\bm{x}_n|\bm{z}_n) := p(\bm{x}_n|\bm{z}_n,\bm{\phi}) = \prod_{k=1}^{K} p(\bm{x}_n|\phi_k)^{z_{nk}}
+\end{align}
+と書くことができる．
+
+以上で導入したパラメータ$A,\bm{\pi},\bm{\phi}$をまとめて$\theta := \{\bm{\pi},A,\bm{\phi}\}$と書く．これを使って隠れマルコフモデルの式を改めて書きなおすと
+\begin{align}
+	p(X,Z|\theta)=p(\bm{x}_1,\dots,\bm{x}_N,\bm{z}_1,\dots,\bm{z}_N|\theta) = p(\bm{z}_1|\bm{\pi}) \left[ \prod_{k=2}^N p(\bm{z}_k|\bm{z}_{k-1},A)\right] \prod_{k=1}^N p(\bm{x}_k|\bm{z}_k,\bm{\phi})
+	\label{eq:def_HMM}
+\end{align}
+とすることができる．
+
+\section{HMMの最尤推定}
+
+データ集合$\bm{X}=\{\bm{x}_1,\cdots,\bm{x}_N\}$が観測された場合，HMMのパラメータ$\theta := \{\bm{\pi},A,\bm{\phi}\}$を最尤推定によって求めることができる．
+まず観測変数系列$X$と潜在変数系列$Z$の同時分布関数$p(X,Z|\theta)$を$Z$について和を取ることで周辺化し，
+尤度関数を導入する．すなわち，
+\begin{align}
+	p(X|\theta) = \sum_{Z} p(X,Z|\theta)
+	\label{}
+\end{align}
+となる．この尤度関数$L(\theta|X)$を直に最大化し最尤推定を実行しようとすると$\sum_Z$の計算をする事になるが，$N$個ある潜在変数系列に対して各々$K$個の状態を取るので結局$K^N$項の和を計算する事になるので，データサイズが大きければ実質不可能となる．
+ここではこの困難を克服するためにEMアルゴリズムを用いる．
+EMアルゴリズムは２つのステップ
 \begin{itemize}
-\item 論文は誰かに読んでもらうためのものです．常に，自分が読み手だった場合に今の記載の仕方で理解できるかという観点に立って執筆をするように心がけると良いと思います．
+    \item Eステップ：現在推定されている潜在変数の分布に基づいて，モデルの尤度の期待値を計算
+    \item Mステップ：Eステップで求まった尤度の期待値を最大化するパラメータを求める
+    
 \end{itemize}
+で構成されているアルゴリズムであり，それぞれ交互に繰り返すことによりパラメータを推計するアルゴリズムである．
 
-\chapter{結果}\label{sec:result}
+\subsection{Eステップ}
 
-本章には，結果を記載します．
-\begin{itemize}
-\item 結果と考察を分ける場合には，結果には得られた実験結果からわかる「客観的な事実」のみを記載するというのが原則となります．主観的な事柄に関しては考察に持っていくようにして下さい．ただし，これらを厳密に分けて書くことは難しいことも多く，「結果と考察」をまとめて一つの章とすることも行われます．
-\end{itemize}
+Eステップでは，最初にパラメータをある適当な値$\theta^{old}$と設定し，潜在変数の事後分布$p(Z|X,\theta^{old})$を求め，完全データに対する尤度関数の対数の期待値$Q(\theta,\theta^{old})$を
+\begin{align}
+    \begin{aligned}
+	    Q(\theta,\theta^{old}) &= \sum_{Z} p(Z|X,\theta^{old}) \ln p(X,Z|\theta)
+    \end{aligned}
+    \label{eq:def_Q}
+\end{align}
+として求める．
 
-\chapter{考察}
+ここで，潜在変数$\bm{z}_n$の周辺事後分布$\gamma(\bm{z}_n)$、2つの連続した潜在変数に対する同時分布$\xi(\bm{z}_{n-1},\bm{z}_n)$を
+\begin{align} 
+    \gamma(\bm{z}_n)           &:= p(\bm{z}_n|X,\theta^{old}) ,        & \gamma:\mathbb{K} \to [0,1] \\
+    \xi(\bm{z}_{n-1},\bm{z}_n) &:= p(\bm{z}_{n-1},\bm{z}_n|X,\theta^{old}), & \xi:\mathbb{K}\times\mathbb{K} \to [0,1]
+	\label{}
+\end{align}
+とおく．これに従い，$\gamma(\bm{z}_n),\xi(\bm{z}_{n-1},\bm{z}_n)$について，各要素で
+\begin{align}
+    \begin{aligned}
+        \gamma(z_{nk})           &:= \mathbb{E} \left[ z_{nk} \right]         
+            = \sum_{\bm{z}_n} \gamma(\bm{z}_n) z_{nk} = p(z_{nk}=1|X,\theta^{old}) \\
+        \xi(z_{n-1,j},z_{nk})    &:= \mathbb{E}\left[ z_{n-1,j} \times z_{nk} \right] 
+            = \sum_{\bm{z}_{n-1},\bm{z}_n} \xi(\bm{z}_{n-1},\bm{z}_n)z_{n-1,j}\times z_{nk} = p(z_{n-1,j}=1,z_{nk}=1|X,\theta^{old})
+    \end{aligned}
+    \label{eq:def_gamma_xi_nk}
+\end{align}
+とおく．
 
-ここでは考察を記載します．
-\ref{sec:result}章では客観的な記載を心がけるように言いましたが，この章では結果から言える自分なりの解釈や主張を書いてもらって構いません．
+\eqref{eq:def_HMM}式を\eqref{eq:def_Q}式に代入し、$\gamma,\xi$の定義\eqref{eq:def_gamma_xi_nk}式を用いて変形してくと，$Q(\theta,\theta^{old})$は
+\begin{align}
+\begin{aligned}
+	Q(\theta,\theta^{old}) 
+	&= \sum_{Z} p(Z|X,\theta^{old}) \ln p(X,Z|\theta)\\
+	&= \sum_{k=1}^{K} \gamma(z_{1k}) \ln \pi_k
+   	+  \sum_{n=2}^{N} \sum_{j=1}^{K} \sum_{k=1}^{K} \xi(z_{n-1,j},z_{nk}) \ln A_{jk} 
+	+  \sum_{n=1}^{N} \sum_{k=1}^{K} \gamma(z_{nk}) \ln p(\bm{x}_k|\phi_k)
+\end{aligned}
+	\label{eq:calc_Q}
+\end{align}
+と変形することができる．
+
+\subsection{Mステップ}
+
+Mステップでは，パラメータ$\theta$を適当に選択することで$Q(\theta,\theta^{old})$の最大化を行う．ここで遷移行列$A$と初期分布$\bm{\pi}$には条件
+\begin{align}
+    \begin{aligned}
+        & \sum_{k}A_{jk} = 1, ^\forall j \in \{1,\dots,K\} \\
+        & \sum_{k=1}^{K} \pi_k = 1
+    \end{aligned}
+\end{align}
+が付いてあるため，ラグランジュの未定乗数$(\lambda_1,\dots,\lambda_{K+1})$を導入し，$Q(\theta,\theta^{old})$の最大化問題を解く．数式として
+\begin{align}
+	\begin{aligned}
+        \theta_{max}    &=  \argmax_{\theta=(\bm{\pi},A,\bm{\phi})} F(\bm{\pi}, A, \bm{\phi}) \\ 
+        F(\bm{\pi}, A, \bm{\phi}) &:= Q(\theta, \theta^{old}) - \lambda_1\left(\sum_{k=1}^{K} \pi_k - 1 \right) - \sum_{j=1}^{K} \lambda_{j+1} \left( \sum_{k=1}^{K} A_{jk} - 1 \right)\\ 
+	\end{aligned}
+\label{}
+\end{align}
+と表され，$F(\pi, A, \phi)$を$\pi,A$の各ベクトル・行列要素で微分することで
+\begin{align}
+	\begin{aligned}
+		\frac{\partial F}{\partial \pi_k}  &= \frac{\gamma(z_{1k})}{\pi_k} - \lambda_1 = 0, 
+			\pi_k = \frac{\gamma(z_{1k})}{\lambda_1}  \\
+		\frac{\partial F}{\partial A_{jk}} &= \frac{\sum_{n=2}^{N} \xi(z_{n-1,j},z_{nk})}{A_{jk}} - \lambda_{j+1}, 
+			A_{jk} = \frac{\sum_{n=2}^{N} \xi(z_{n-1,j},z_{nk})}{\lambda_{j+1}} 
+	\end{aligned}
+	\label{eq:lagrange_pi_A}
+\end{align}
+とすることができる．パラメータ$\bm{\phi}$についての微分は観測変数$x$がどのような分布に従うと設定するかに応じて結果が変わるものであるため，次のセクションに示すことにする．\eqref{eq:lagrange_pi_A}を拘束条件であるに代入すると
+\begin{align}
+	\begin{aligned}
+		\sum_{k=1}^{K} \pi_k  &=  \sum_{k=1}^{K} \frac{\gamma(z_{1k})}{\lambda_1}  = 1,
+			\therefore \lambda_1 = \sum_{j=1}^{K} \gamma(\bm{z}_{1j}) \\
+		\sum_{k=1}^{K} A_{jk} &=  \sum_{k=1}^{K} \frac{\sum_{n=2}^{N} \xi(z_{n-1,j},z_{nk})}{\lambda_{j+1}} =1,
+        \therefore \lambda_{j+1} = \sum_{l=1}^{K} \sum_{n=2}^{N} \xi(z_{n-1,j},z_{nl})
+	\end{aligned}
+	\label{eq:lagrange_lambda}
+\end{align}
+と求められる．式\eqref{eq:lagrange_lambda}の結果を式\eqref{eq:lagrange_pi_A}に代入すると
+\begin{align}
+	\begin{aligned}
+		\pi_k　&=  \frac{\gamma(z_{1k})}{\lambda_1} = \frac{\gamma(z_{1k})}{\sum_{j=1}^{K} \gamma(\bm{z}_{1j})} \\
+        A_{jk} &= \frac{\sum_{n=2}^{N} \xi(z_{n-1,j},z_{nk})}{\lambda_{j+1}} =  \frac{\sum_{n=2}^{N} \xi(z_{n-1,j},z_{nk})}{ \sum_{l=1}^{K} \sum_{n=2}^{N} \xi(z_{n-1,j},z_{nl})}
+	\end{aligned}
+	\label{eq:update_param}
+\end{align}
+と求められる．
+
+\section{HMMの更新式}
+
+本研究で用いているヒト腸内細菌叢の時系列データは，1年間にわたる32種類のPhylumの存在量であり，多項分布に従うと見なされる．そこで，HMMにおいてパラメータ$\bm{\phi}$および出力確率の更新式を導出する必要があると考えられる．これに伴い，EMアルゴリズムにおけるパラメータ$\bm{\phi}$の数式を導出することになる．
+
+まず，パラメータ$\bm{\phi}$の平均を$\bm{\mu}$とすると，観測変数の分布は
+\begin{align}
+    p(\bm{x}_n|\bm{z}_n,\bm{\phi})  &= \prod_{i=1}^{D}\prod_{k=1}^{K} \bm{\mu}_{ik}^{x_{ni}z_{nk}} = \prod_{k=1}^{K}( \prod_{i=1}^{D} \mu_{ik}^{x_{ni}})^{z_{nk}}　\\
+    p(\bm{x}_n|\bm{\phi}_k) &= \prod_{i=1}^{D} \bm{\mu}_{ik}^{x_{ni}}
+\end{align}
+と書くことができる．これを式\eqref{eq:calc_Q}に代入すると
+\begin{align}
+    Q(\theta,\theta^{old})&= \sum_{k=1}^{K} \gamma(z_{1k}) \ln \pi_k
+   	+  \sum_{n=2}^{N} \sum_{j=1}^{K} \sum_{k=1}^{K} \xi(z_{n-1,j},z_{nk}) \ln A_{jk} 
+	+  \sum_{n=1}^{N} \sum_{k=1}^{K} \gamma(z_{nk}) \sum_{i=1}^{D} x_{ni} \ln {\mu}_{ik}^{x_{ni}}
+\end{align}
+と書くことができる．
+
+ここで、$\bm{\mu}_{ik}$は制約条件$\sum_{i=1}^{D}\mu_{ik}=1$を持つため、ラグランジュの未定乗数を用いてラグランジアンは
+\begin{align}
+    L &= Q(\theta, \theta^{old}) + \lambda_1(\sum_{i=1}^{D} \mu_{i1} - 1) + \dots + \lambda_{k} ( \sum_{i=1}^{D} \mu_{ik} - 1 )
+\end{align}
+とおく．$\bm{\mu}_{ik}$の停留条件は
+\begin{align}
+    \frac{\partial L}{\partial \mu_{ik}} &= \frac{\sum_{n=1}^{N} \gamma(z_{nk}) x_{ni}}{\mu_{ik}} + \lambda_{k} = 0 \\
+    \mu_{ik} &= \frac{\sum_{n=1}^{N} \gamma(z_{nk}) x_{ni}}{-\lambda_{k}}
+\end{align}
+となる．$\bm{\mu}_{ik}$の制約条件により
+\begin{align}
+    \sum_{i=1}^{D} \mu_{ik}&= \sum_{i=1}^{D} \frac{\sum_{n=1}^{N} \gamma(z_{nk}) x_{ni}}{-\lambda_{k}} = 1　\\
+    \lambda_{k} &= \sum_{i=1}^{D} \sum{n=1}^{N} \gamma(z_{nk}) x_{ni} = \sum_{n=1}^{N} \gamma(z_{nk})
+\end{align}
+となるため，$\bm{\mu}_{ik}$は
+\begin{align}
+    \mu_{ik} &= \frac{\sum_{n=1}^{N} \gamma(z_{nk}) x_{ni}}{\sum_{n=1}^{N} \gamma(z_{nk})}
+\end{align}
+と書くことができる．
 
 \chapter{まとめ}
 
-論文のまとめを記載します．
-
 \chapter*{謝辞}
+本研究を進めるにあたり，研究の相談，指導をして下さった浜田道昭教授にお礼申し上げます．また研究に関して様々な助言・指導をして下さった細田至温，白鳥哲嗣様に感謝を申し上げます．さらに日頃より研究に対して議論して下さった浜田研究室の方々にも感謝申し上げます．
 
-\begin{itemize}
-\item 共同研究の場合はここでその旨を記載します．
-\item スタッフ・先輩・同期・後輩などにいろいろと助けてもらった場合にはここに記載してもいいと思います．
-\item 遺伝研のスパコンを利用した場合には以下の記載を行うようにしてください．
-「本研究は，情報・システム研究機構 国立遺伝学研究所が有する遺伝研スーパーコンピュータシステムを利用しました．」
-\end{itemize}
+
 
 \bibliographystyle{unsrt}
 \bibliography{ref}
@@ -170,122 +326,11 @@ overleafについて，githubと連携させることでバックアップを取
 
 \chapter{補遺}
 
-補遺には，本文中に入れると分量が多く，論文の本筋がわかりにくくなる場合などに利用します．
-\textbf{卒論・修論は，できるだけ自己完結的 (self-contained)に書くのが望ましい}ので，補遺を適切に利用し，可能な限り論文のみを読むだけで大部分が理解できるように記載することを心がけて下さい\footnote{逆に言うと，研究をするために勉強したことで，論文の内容を理解するためにあってもよいものはどんどん補遺に記載をしてもらって構いません．}．
-\begin{itemize}
-\item 既存の研究であるが，論文を参照せずに理解できるように手法を記載する．研究のために勉強した，基礎的なことであっても補遺に自分の言葉でまとめ直すことは全く問題ないです\footnote{このあたりは原著論文を書く際には少し違うので注意．}．
-\item パラメタを少し変えたときの実験結果（表・図）などを載せる．
-\end{itemize}
 
 
-\chapter{卒論・修論執筆のスケジュール（現在検討中：来年度より本格運用予定．意見がある場合は私または学年代表まで）}
-
-以下が卒論・修論執筆の大体のスケジュールになります．先に書いた通り，論文執筆には皆さんが想像する以上に時間・労力・精神力が必要となります．下記のスケジュールを\textbf{前倒しで実行}するぐらいの意気込みで，\textbf{常に先手先手でやるように}して下さい\footnote{精神的にもこのほうが楽です．}．
-
-本スケジュールに関しては，学生側の意見も取り入れて随時見直しを行いたいと思いますので，遠慮なく意見を言うようにしてください．
-
-\section{卒業論文}
-
-% 来年度以降は下記のスケジュールでいくのがよいのではないかと思います．もちろん学生側から提案があれば，スケジュールに関しては相談に乗ります．
-
-\subsection{Overleaf上に自分の卒論テンプレートの作成（夏前〜夏休み，早ければ早いほどよい）}
-
-本文章のソースをコピーするということで構いませんので，なるべく早く作成をしてください．
-作成後は放置するだけでは意味がないので，\TeX の書き方の練習も兼ねて，\textbf{研究に関連して勉強をしたことを随時 (例えば) 補遺にまとめていく}ことを強く推奨します．ここでまとめたものは，卒論の補遺や本文にそのまま残してもらっても構いません\footnote{文章が増えていくだけで心の余裕につながります．また，文章にまとめることにより，自分の中で研究の方向性が整理されるという効果もあると思います．}．
-
-\subsection{卒業論文第一稿を教員に提出(12月の卒論正式提出の遅くとも１週間前)}
-
-この時点の提出論文は正式提出１週間前のバージョンであり，それなりに完成度が高いものを期待しています．
-そのため，第一稿の提出に先立ち以下を「必ず」行うようにして下さい．
-\begin{itemize}
-\item 第０稿を\textbf{卒研学生間での相互査読}をする．可能であれば，先輩にも見てもらう．
-\item \textbf{論文の構成・内容に関して不明点があれば教員に事前に相談し解決しておく(重要！)}．想像してもらえればわかると思いますが，１週間前に提出したあとでは，大幅変更は難しいので，これは非常に重要です．
-\end{itemize}
-
-\subsection{卒研発表会と卒業論文の正式提出（12月上旬〜中旬）}
-
-毎年12月中旬に，「卒研最終発表会」を情報系３研究室（井上，村田，浜田研）合同で行います．
-この発表会の数日前に，卒業論文を３研究室で共有します．ここで提出する卒業論文は，村田先生や井上先生が読むことを強く意識し，その時点まで得られている結果に基づいたもので良いので，この文章の注意点を守ったちゃんとした（正式な）卒業論文を提出するようにして下さい．
-
-\subsection{卒業論文の最終版提出（2月上旬）}
-
-最終版提出までは，\textbf{１２月の提出時点の正式版の卒業論文をさらに良くするための期間}です．
-正式版提出後に新しく結果が出た場合などは論文に結果を追加してもらっても構いません．
-さらに，日本語の卒業論文をベースにして，\textbf{この期間に「英文原著論文」の執筆に取り組めると素晴らしい}です\footnote{英文原著論の執筆は，mustではありませんが，ぜひ目標にしてもらえると良いかと思います．}．
-そのためにも，12月時点で完成度が十分に高い論文を完成させておくことが重要です．
-
-\section{修士論文}
-
-卒論執筆で各自いろいろと反省点があると思いますので，それを修論に活かせるようにして下さい．
-
-\subsection{Overleaf上に自分の修論テンプレートの作成（M１進学後すぐ）}
-
-卒論以上に，\textbf{文章にまとめながら研究を行う}という習慣をつけるようにしてください．
-２週間に一回のゼミでの進捗報告では，詳細はOverleafを参照するといった発表ができるとよいと思います．
-文章にまとめることにより，研究の方向性が明らかとなったり，新しい気付きがあったりしますのでぜひ実践をしてください．
-
-修論に関しては現状は中間発表等は一切行っていませんので，自ら強い意志を持って研究を進めていくことが必要になると思います．
 
 
-\subsection{修士論文概要書の提出（M1の２月下旬ぐらい）}
 
-A4で２ページの概要書の提出を行います．
-\textbf{第０稿を学生間で相互査読を行った後に}，遅くとも\textbf{専攻の提出締め切りの１週間前まで}に教員に第一稿の提出を行うようにしてください．
-
-\subsection{修論の内容の学会発表（M2の夏ぐらい）}
-
-\subsubsection{国内学会}
-
-例えば，以下のような学会があります．
-\begin{itemize}
-\item 日本RNA学会
-\item 日本バイオインフォマティクス学会（例年９月中旬〜下旬）
-\item 分子生物学会（例年１２月上旬に開催）
-\end{itemize}
-
-今までの学生は，日本バイオインフォマティクス学会で発表をしていた学生が多かったです．
-
-\subsubsection{国際学会}
-
-国際学会で発表を行う場合は，原則として論文が採択され口頭発表を行う場合となります\footnote{産総研RAとして雇用されている学生は，例外的にポスター発表での参加を認めることもあります．}．
-
-\begin{itemize}
-\item ISMB
-\item GIW
-\item APBC
-\end{itemize}
-
-\subsection{修士論文第一稿を教員に提出（下記正式提出の遅くとも１週間前，早ければ早いほどよい）}
-
-この時点の提出論文は正式提出１週間前のバージョンであり，相当の完成度が求められています．第一稿の提出に先立ち以下を必ず行うようにしてください．
-
-\begin{itemize}
-\item 第０稿をM2学生間で相互査読をする．
-\item 論文の構成・内容等に関しては，随時教員に相談を行い，不明点は解消しておく．
-\end{itemize}
-
-
-\subsection{修論の正式提出（M2の１月中旬〜下旬）}
-
-学科に対して修士論文の正式提出を行います．
-副査の先生が審査ができるように，修論発表会より１週間以上前に提出が義務付けられています．
-
-
-\subsection{修士論文発表会（M2の２月上旬）}
-
-\subsection{修論の最終提出（M2の２月中旬）}
-
-\chapter{過去の浜田研学生の卒論・修論・博論}\label{chap:past_thesis}
-
-今後(可能であれば今年度から)は，ここにOverleafのread-onlyリンクを残していきましょうかね・・・？
-
-\section{2018年度}
-
-\subsection{卒業論文}
-
-\subsection{修士論文}
-
-\subsection{その他の論文等}
 
 
 \end{document}
